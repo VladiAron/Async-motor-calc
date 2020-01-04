@@ -20,9 +20,9 @@ double NR[30];
 
 
 double U1 = 220, p = 2, f = 50,
-		x1 = 29.17, r1 = 53.74, _x2 = 35.58,
-		_r2 = 50, x12 = 378.17, r12 = 17.7,
-		hnr = 0.0083, myr = 1, ro = 0.044/1000000,
+		x1 = 29.17, r1 = 53.74, _x2i = 35.58,
+		_r2i = 50, x12 = 378.17, r12 = 17.7,
+		hnr = 0.0083, myr = 1, ro = 0.000000044,
 		W1 = 720, kob = 0.97, tau = 0.0432, kmy = 1.44;
 
 
@@ -59,10 +59,8 @@ int main(int argc, char * argv[]){
 	double Up = 0;
 	double x12n = 1;
 
-
 	do{
 
-		NR[i] = n * (1 - s[i]);
 		//M[i] = (3 * pow(U1, 2) * p * _r2)/(2 * M_PI * f * s[i] *(pow(r1 + _r2/s[i], 2) + pow(x1 + _x2, 2)));
 
 //		double res1 = _a * _r2 / s[i];
@@ -81,18 +79,28 @@ int main(int argc, char * argv[]){
 //		P1[i] = 3 * U1 * I1_a / 1000;
 		//cosfi[i] = I1_a / I1[i];
 
+		double _x2, _r2;
+		double hnp = 503.2 * sqrt(ro/(myr * f * s[i]));
+		double kr = 1.5 * hnr/hnp;
+		double kx = hnr/hnp;
+		NR[i] = n * (1 - s[i]);
 		_I2 = 0;
 		Up = 0;
+		//I2n = 1650 * p * tau / (W1 * kob);
 		while (Up < U1){
-			_I2 += 0.001;
+			_I2 += 0.000001;
+			_x2 = _x2i;
+			_r2 = _r2i;
 			_Z2 = sqrt(pow(_x2, 2) + pow(_r2/s[i], 2));
+			//double Z2n = _Z2 * pow(I2n/_I2, 0.417);
 			E1 = _I2 * _Z2;
-			//x12n = x12 * kmy - (kmy - 1)*(x12 - x1) * E1 / U1;
-			Z12 = sqrt(pow(x12, 2) + pow(r12, 2));
+			x12n = x12 * kmy - (kmy - 1)*(x12 - x1) * E1 / U1;
+			Z12 = sqrt(pow(x12n, 2) + pow(r12, 2));
 			Imy = E1/Z12;
 			I1[i] = Imy + _I2;
 			Z1 = sqrt(pow(x1, 2) + pow(r1, 2));
 			Up = E1 + I1[i] * Z1;
+
 		}
 		double Pm = 3 * pow(Imy,2) * r12;
 		double Pe1 = 3 * pow(I1[i], 2) * r1;
@@ -100,12 +108,12 @@ int main(int argc, char * argv[]){
 		P1[i] = Pem + Pm + Pe1;
 		double Pe2 = 3 * pow(_I2, 2) * _r2;
 		double Pmex = 3 * pow(_I2,2) * _r2 * (1 - s[i])/s[i];//Pem - Pe2;
-		M[i] = Pmex * p / (2 * M_PI * f * (1 - s[i]));
 		double Pdob = 0.005 * P1[i];
 		P2[i] = Pmex - Pdob;
+		M[i] = P2[i] * p / (2 * M_PI * f * (1 - s[i]));
 		double EP = Pe2 + Pe1 + Pdob;
 		KPD[i] = (P2[i] / P1[i]);
-		double cosff =  (3 * pow(I1[i], 2) * Z1);
+		cosfi[i] =  P1[i] / (3 * I1[i] * Up);
 		i++;
 		s[i] = s[i-1] + prir;
 		if(s[i] >= 0.199){
@@ -118,7 +126,7 @@ int main(int argc, char * argv[]){
 
 	printf(HEADER);
 	for(int j = 0; j < i; j++){
-		printf(OUTPUT_FORMAT, s[j], P2[j], P1[j], KPD[j], KPD[j], I1[j], M[j], NR[j]);
+		printf(OUTPUT_FORMAT, s[j], P2[j], P1[j], KPD[j], cosfi[j], I1[j], M[j], NR[j]);
 	}
 
 
