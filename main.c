@@ -19,11 +19,11 @@ double M[30];
 double NR[30];
 
 
-double U1 = 220, p = 2, f = 50,
-		x1 = 29.17, r1 = 53.74, _x2i = 35.58,
-		_r2i = 50, x12 = 378.17, r12 = 17.7,
-		hnr = 0.0083, myr = 1, ro = 0.000000044,
-		W1 = 720, kob = 0.97, tau = 0.0432, kmy = 1.44;
+double U1 = 220, p = 3, f = 50,
+		x1 = 13.03, r1 = 19.1, _x2i = 20.47,
+		_r2i = 14.53, x12 = 232.3, r12 = 10.85,
+		hnr = 0.0126, myr = 1, ro = 0.000000044,
+		W1 = 720, kob = 0.97, tau = 0.0432, kmy = 1.432;
 
 
 
@@ -61,7 +61,6 @@ int main(int argc, char * argv[]){
 
 	do{
 
-		//M[i] = (3 * pow(U1, 2) * p * _r2)/(2 * M_PI * f * s[i] *(pow(r1 + _r2/s[i], 2) + pow(x1 + _x2, 2)));
 
 //		double res1 = _a * _r2 / s[i];
 //		double res2 = _b * _r2 / s[i];
@@ -88,7 +87,7 @@ int main(int argc, char * argv[]){
 		Up = 0;
 		//I2n = 1650 * p * tau / (W1 * kob);
 		while (Up < U1){
-			_I2 += 0.000001;
+			_I2 += 0.01;
 			_x2 = _x2i;
 			_r2 = _r2i;
 			_Z2 = sqrt(pow(_x2, 2) + pow(_r2/s[i], 2));
@@ -107,11 +106,17 @@ int main(int argc, char * argv[]){
 		double Pem = 3 * pow(_I2, 2) * _r2/s[i];
 		P1[i] = Pem + Pm + Pe1;
 		double Pe2 = 3 * pow(_I2, 2) * _r2;
-		double Pmex = 3 * pow(_I2,2) * _r2 * (1 - s[i])/s[i];//Pem - Pe2;
+		double Pmex = 1.18*pow(NR[i]/10, 2)*pow(0.089,4);//3 * pow(_I2,2) * _r2 * (1 - s[i])/s[i];//Pem - Pe2;
 		double Pdob = 0.005 * P1[i];
-		P2[i] = Pmex - Pdob;
+		P1[i] += Pdob;
+		//P2[i] = Pmex - Pdob;
+		double EP =Pm + Pe2 + Pe1 + Pdob + Pmex;
+		P2[i] = P1[i] - EP;
+		P2[i] < 0 ? P2[i] = 0 : P2[i];
 		M[i] = P2[i] * p / (2 * M_PI * f * (1 - s[i]));
-		double EP = Pe2 + Pe1 + Pdob;
+		if(M[i] == 0){
+			M[i] = (3 * pow(U1, 2) * p * _r2)/(2 * M_PI * f * s[i] *(pow(r1 + _r2/s[i], 2) + pow(x1 + _x2, 2)));
+		}
 		KPD[i] = (P2[i] / P1[i]);
 		cosfi[i] =  P1[i] / (3 * I1[i] * Up);
 		i++;
